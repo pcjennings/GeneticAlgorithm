@@ -103,7 +103,15 @@ class GeneticAlgorithm(object):
                 return i
 
     def population_reduction(self, pop, fit):
-        """Method to reduce population size to constant."""
+        """Method to reduce population size to constant.
+
+        Parameters
+        ----------
+        pop : list
+            Extended population.
+        fit : list
+            Extended fitness assignment.
+        """
         global_details = [[i, j] for i, j in zip(pop, fit)]
         global_details.sort(key=lambda x: float(x[1]), reverse=False)
 
@@ -145,19 +153,3 @@ class GeneticAlgorithm(object):
             extend_fit = self.fitness + self.get_fitness(offspring_list)
             extend_pop = self.pop + offspring_list
             self.population_reduction(extend_pop, extend_fit)
-
-
-if __name__ == '__main__':
-    import random
-
-    def ff(x):
-        return random.random()
-
-    ga = GeneticAlgorithm(pop_size=10,
-                          fit_func=ff,
-                          d_param=[1, 1, 3],
-                          pop=None)
-    ga.search(5000)
-
-    print(ga.pop)
-    print(ga.fitness)
