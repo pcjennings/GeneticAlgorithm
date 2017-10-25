@@ -4,15 +4,18 @@ import numpy as np
 class GeneticAlgorithm(object):
     """Genetic algorithm for parameter optimization."""
 
-    def __init__(self, pop_size):
+    def __init__(self, pop_size, fit_func):
         """Initialize the genetic algorithm.
 
         Parameters
         ----------
         pop_size : int
             Population size.
+        fit_func : object
+            User defined function to calculate fitness.
         """
         self.pop_size = pop_size
+        self.fit_func = fit_func
 
     def initialize_population(self, d_param):
         """Generate a random starting population.
@@ -64,6 +67,20 @@ class GeneticAlgorithm(object):
         parent_one[mut_point] = new_params
 
         return parent_one
+
+    def get_fitness(self, param_list):
+        """Function wrapper to calculate the fitness.
+
+        Parameters
+        ----------
+        param_list : list
+            List of new parameter sets to get fitness for.
+        """
+        fit = []
+        for p in param_list:
+            fit.append(self.fit_func(p))
+
+        return fit
 
 
 if __name__ == '__main__':
