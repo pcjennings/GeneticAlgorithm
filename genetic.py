@@ -4,7 +4,7 @@ import numpy as np
 class GeneticAlgorithm(object):
     """Genetic algorithm for parameter optimization."""
 
-    def __init__(self, pop_size, fit_func):
+    def __init__(self, pop_size, fit_func, d_param, pop=None):
         """Initialize the genetic algorithm.
 
         Parameters
@@ -13,20 +13,21 @@ class GeneticAlgorithm(object):
             Population size.
         fit_func : object
             User defined function to calculate fitness.
+        d_param : int
+            Dimension of parameters in model.
+        pop : list
+            The current population. Default is None.
         """
         self.pop_size = pop_size
         self.fit_func = fit_func
-
-    def initialize_population(self, d_param):
-        """Generate a random starting population.
-
-        Parameters
-        ----------
-        d_param : int
-            Dimension of parameters in model.
-        """
         self.d_param = d_param
 
+        if pop is None:
+            pop = self.initialize_population()
+        self.pop = pop
+
+    def initialize_population(self):
+        """Generate a random starting population."""
         self.pop = []
         for i in range(self.pop_size):
             new_param = []
@@ -81,6 +82,25 @@ class GeneticAlgorithm(object):
             fit.append(self.fit_func(p))
 
         return fit
+
+    def selection(self, param_list, fit_list):
+        """Perform natural selection.
+
+        Parameters
+        ----------
+        param_list : list
+            List of parameter sets to consider.
+        fit_list : list
+            list of fitnesses associated with parameter list.
+        """
+        fit_list = np.asarray(fit_list)
+        # Scale the current set of fitnesses.
+        fit_list = (fit_list - np.min(fit_list)) / np.max(fit_list)
+        # Get random probability.
+        prob = np.random.rand(len(fit_list))
+        for i, j, k in zip(param_list, fit_list, prob):
+            if j > k:
+                return i
 
 
 if __name__ == '__main__':
