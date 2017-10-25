@@ -51,9 +51,23 @@ class GeneticAlgorithm(object):
 
         return child
 
+    def block_mutation(self, parent_one):
+        """Perform a random permutation on a parameter block.
+
+        Parameters
+        ----------
+        parent_one : list
+            List of params for first parent.
+        """
+        mut_point = np.random.randint(0, len(parent_one), 1)[0]
+        new_params = list(np.random.rand(len(parent_one[mut_point])))
+        parent_one[mut_point] = new_params
+
+        return parent_one
 
 
 if __name__ == '__main__':
     ga = GeneticAlgorithm(pop_size=3)
     pop = ga.initialize_population([1, 1, 3])
-    print(ga.cut_and_splice(pop[0], pop[1]))
+    child = ga.cut_and_splice(pop[0], pop[1])
+    child = ga.block_mutation(pop[0])
