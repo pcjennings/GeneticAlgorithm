@@ -51,9 +51,9 @@ class GeneticAlgorithm(object):
         """
         if size is 'random':
             cut_point = np.random.randint(1, len(parent_one)+1, 1)[0]
-        child = parent_one[:cut_point] + parent_two[cut_point:]
+        offspring = parent_one[:cut_point] + parent_two[cut_point:]
 
-        return child
+        return offspring
 
     def block_mutation(self, parent_one):
         """Perform a random permutation on a parameter block.
@@ -102,9 +102,62 @@ class GeneticAlgorithm(object):
             if j > k:
                 return i
 
+    def population_reduction(self, pop, fit):
+        """Method to reduce population size to constant."""
+        global_details = [[i, j] for i, j in zip(pop, fit)]
+        global_details.sort(key=lambda x: float(x[1]), reverse=False)
+
+        self.pop, self.fitness = [], []
+        for i in global_details:
+            if len(self.pop) < self.pop_size:
+                self.pop.append(i[0])
+                self.fitness.append(i[1])
+            else:
+                break
+
+    def search(self, steps):
+        """Do the actual search.
+
+        Parameters
+        ----------
+        steps : int
+            Maximum number of steps to be taken.
+        """
+        self.fitness = self.get_fitness(self.pop)
+        operator = [self.cut_and_splice, self.block_mutation]
+
+        for s in range(steps):
+            offspring_list = []
+            for c in range(self.pop_size):
+                op = np.random.randint(0, len(operator), 1)[0]
+                p1 = None
+                while p1 is None:
+                    p1 = self.selection(self.pop, self.fitness)
+                if op == 0:
+                    op = operator[op]
+                    p2 = p1
+                    while p1 is p2 and None:
+                        p2 = self.selection(self.pop, self.fitness)
+                    offspring_list.append(op(p1, p2))
+                else:
+                    op = operator[op]
+                    offspring_list.append(op(p1))
+            extend_fit = self.fitness + self.get_fitness(offspring_list)
+            extend_pop = self.pop + offspring_list
+            self.population_reduction(extend_pop, extend_fit)
+
 
 if __name__ == '__main__':
-    ga = GeneticAlgorithm(pop_size=3)
-    pop = ga.initialize_population([1, 1, 3])
-    child = ga.cut_and_splice(pop[0], pop[1])
-    child = ga.block_mutation(pop[0])
+    import random
+
+    def ff(x):
+        return random.random()
+
+    ga = GeneticAlgorithm(pop_size=10,
+                          fit_func=ff,
+                          d_param=[1, 1, 3],
+                          pop=None)
+    ga.search(5000)
+
+    print(ga.pop)
+    print(ga.fitness)
