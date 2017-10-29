@@ -5,9 +5,12 @@ python:
   - "3.5"
 
 before_script:
+  - pip install coverage codecov
   - pip install -r requirements.txt
 
 script:
   - python --version
   - export PYTHONPATH=$PWD/:$PYTHONPATH
-  - python tests/test_run.py
+  - coverage run tests/test_run.py
+  - coverage combine
+  - codecov
