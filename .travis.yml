@@ -1,17 +1,14 @@
 language: python
-sudo: required
+# sudo: required
 python:
   - "2.7"
   - "3.5"
   # PyPy versions
-  - "pypy"  # PyPy2 2.5.0
-  - "pypy3" # Pypy3 2.4.0
+  # - "pypy"  # PyPy2 2.5.0
+  # - "pypy3" # Pypy3 2.4.0
 # command to install dependencies
 before_script:
   - pip install -r requirements.txt
-# install:
-#    make build
-# command to run tests
 script:
   - python --version
   - export PYTHONPATH=$PWD/:$PYTHONPATH
