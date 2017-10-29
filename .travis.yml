@@ -12,5 +12,4 @@ script:
   - python --version
   - export PYTHONPATH=$PWD/:$PYTHONPATH
   - coverage run tests/test_run.py
-  - coverage combine
   - codecov
