@@ -18,7 +18,7 @@ class TestGeneticAlgorithm(unittest.TestCase):
         ga.search(500)
 
         self.assertTrue(len(ga.pop) == 10)
-        self.assertTrue(len(ga.fitness) == 10)
+        self.assertFalse(len(ga.fitness) == 10)
 
 
 if __name__ == '__main__':
