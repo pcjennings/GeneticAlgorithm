@@ -8,12 +8,11 @@ python:
   - "pypy3" # Pypy3 2.4.0
 # command to install dependencies
 before_script:
-  - sudo apt-get install -qq python-numpy
   - pip install -r requirements.txt
-install:
-    make build
+# install:
+#    make build
 # command to run tests
 script:
+  - python --version
   - export PYTHONPATH=$PWD/:$PYTHONPATH
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then python tests/run_search.py; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then python tests/run_search.py; fi
+  - python tests/run_search.py
