@@ -55,17 +55,24 @@ class GeneticAlgorithm(object):
 
         return offspring
 
-    def block_mutation(self, parent_one):
+    def block_mutation(self, parent_one, mut_op):
         """Perform a random permutation on a parameter block.
 
         Parameters
         ----------
         parent_one : list
             List of params for first parent.
+        mut_op : string
+            String of operator for mutation.
         """
         mut_point = np.random.randint(0, len(parent_one), 1)[0]
-        new_params = list(np.random.rand(len(parent_one[mut_point])))
-        parent_one[mut_point] = new_params
+        old_params = np.array(parent_one[mut_point])
+        new_params = np.random.rand(len(parent_one[mut_point]))
+        if mut_op != '=':
+            rparams = eval('old_params ' + mut_op + ' new_params')
+        else:
+            rparams = new_params
+        parent_one[mut_point] = list(np.abs(rparams))
 
         return parent_one
 
@@ -133,6 +140,7 @@ class GeneticAlgorithm(object):
         """
         self.fitness = self.get_fitness(self.pop)
         operator = [self.cut_and_splice, self.block_mutation]
+        base_mut_op = ['=', '+', '-', '/', '**']
 
         for s in range(steps):
             offspring_list = []
@@ -148,8 +156,10 @@ class GeneticAlgorithm(object):
                         p2 = self.selection(self.pop, self.fitness)
                     offspring_list.append(op(p1, p2))
                 else:
+                    mut_choice = np.random.randint(0, len(base_mut_op), 1)[0]
                     op = operator[op]
-                    offspring_list.append(op(p1))
+                    offspring_list.append(op(p1,
+                                             mut_op=base_mut_op[mut_choice]))
             extend_fit = self.fitness + self.get_fitness(offspring_list)
             extend_pop = self.pop + offspring_list
             self.population_reduction(extend_pop, extend_fit)
