@@ -140,7 +140,7 @@ class GeneticAlgorithm(object):
         """
         self.fitness = self.get_fitness(self.pop)
         operator = [self.cut_and_splice, self.block_mutation]
-        base_mut_op = ['=', '+', '-', '/', '**']
+        base_mut_op = ['=', '+', '-', '/', '**', '** -1. *']
 
         for s in range(steps):
             offspring_list = []

@@ -107,15 +107,16 @@ def ff(x):
     return score / 5.
 
 
+# Setup the GA search.
 ga = GeneticAlgorithm(pop_size=10,
                       fit_func=ff,
                       d_param=[1, 1],
                       pop=None)
 ga.search(500)
 
+# Get optimized parameters.
 ga_r = ga.pop[0][0][0]
 ga_w = ga.pop[0][1]
-print(ga.fitness[0])
 
 # Set up the prediction routine.
 kdict = {'k1': {'type': 'gaussian', 'width': w1}}
@@ -132,7 +133,8 @@ opt_upper = np.array(optimized['prediction']) + \
 opt_lower = np.array(optimized['prediction']) - \
  (np.array(optimized['uncertainty'] * tstd))
 
-tgp1, tgp2 = gp.kernel_dict['k1']['width'][0]*stdx, np.sqrt(gp.regularization)*stdy
+tgp1 = gp.kernel_dict['k1']['width'][0]*stdx
+tgp2 = np.sqrt(gp.regularization)*stdy
 opte = optimized['validation_error']['rmse_average']
 
 # Set up the prediction routine.
