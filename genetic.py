@@ -50,7 +50,7 @@ class GeneticAlgorithm(object):
             Define how to choose size of each cut.
         """
         if size is 'random':
-            cut_point = np.random.randint(1, len(parent_one)+1, 1)[0]
+            cut_point = np.random.randint(1, len(parent_one), 1)[0]
         offspring = parent_one[:cut_point] + parent_two[cut_point:]
 
         return offspring
@@ -104,9 +104,8 @@ class GeneticAlgorithm(object):
         # Scale the current set of fitnesses.
         fit_list = (fit_list - np.min(fit_list)) / np.max(fit_list)
         # Get random probability.
-        prob = np.random.rand(len(fit_list))
-        for i, j, k in zip(param_list, fit_list, prob):
-            if j > k:
+        for i, j in zip(param_list, fit_list):
+            if j > np.random.rand(1)[0]:
                 return i
 
     def population_reduction(self, pop, fit):
@@ -149,11 +148,14 @@ class GeneticAlgorithm(object):
                 p1 = None
                 while p1 is None:
                     p1 = self.selection(self.pop, self.fitness)
+                print('p1: ', p1)
                 if op == 0:
                     op = operator[op]
                     p2 = p1
-                    while p1 is p2 and None:
+                    while p2 is p1 or p2 is None:
+                        print('test')
                         p2 = self.selection(self.pop, self.fitness)
+                    print('p2: ', p2)
                     offspring_list.append(op(p1, p2))
                 else:
                     mut_choice = np.random.randint(0, len(base_mut_op), 1)[0]
