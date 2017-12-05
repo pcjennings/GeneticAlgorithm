@@ -3,7 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from atoml.preprocess.feature_preprocess import standardize
+from atoml.preprocess.scale_target import target_standardize
 from atoml.regression import GaussianProcess
+from atoml.regression.gpfunctions.log_marginal_likelihood import log_marginal_likelihood
 
 from genetic import GeneticAlgorithm
 
@@ -66,61 +68,59 @@ for i in test:
 # Scale the input.
 std = standardize(train_matrix=np.reshape(train, (np.shape(train)[1], 1)),
                   test_matrix=np.reshape(test, (np.shape(test)[1], 1)))
+# std = {}
+# std['train'] = np.reshape(train, (np.shape(train)[1], 1))
+# std['test'] = np.reshape(test, (np.shape(test)[1], 1))
+
+td = target_standardize(target[0])
+target = np.asarray([td['target']])
+
+actual = (np.asarray(actual[0]) - td['mean']) / td['std']
+actual = np.asarray([actual])
 
 # Prediction parameters
-sdt1 = np.sqrt(1e-1)
-w1 = [0.95]
+sdt1 = 1e-1
+w1 = [1.]
+
+big_res = []
 
 
-def ff(x):
+def ff2(x):
     """Define the fitness function for the GA."""
-    n = x[0]
-    w = x[1]
+    n = x[1][0]
+    w = x[0]
+    s = 1.  # x[2][0]
 
-    score = 0.
+    theta = [w, n]  # [w, s, n]
+    kdict = {'k1': {'type': 'gaussian', 'width': w, 'scaling': s}}
+    try:
+        score = -log_marginal_likelihood(
+            theta=theta, train_matrix=std['train'], targets=target[0],
+            kernel_dict=kdict, scale_optimizer=False)
+    except ValueError:
+        return -1.e100
 
-    split_train, split_target = k_split(std['train'], target[0], 5)
-    index = list(range(len(split_train)))
-    for i in index:
-        ctest, ctestt = split_train[i], split_target[i]
-        ctrain, ctraint = None, None
-        for j in index:
-            if j is not i:
-                if ctrain is None:
-                    ctrain, ctraint = split_train[j], split_target[j]
-                else:
-                    ctrain = np.concatenate((ctrain, split_train[j]))
-                    ctraint = np.concatenate((ctraint, split_target[j]))
+    big_res.append([score, w[0], n])
+    print(score, w[0], n)
 
-        # Set up the prediction routine.
-        kdict = {'k1': {'type': 'gaussian', 'width': w}}
-        gp = GaussianProcess(kernel_dict=kdict, regularization=n,
-                             train_fp=ctrain, train_target=ctraint,
-                             optimize_hyperparameters=False)
-
-        # Do the optimized predictions.
-        ga = gp.predict(test_fp=ctest, test_target=ctestt, uncertainty=True,
-                        get_validation_error=True)
-
-        score += ga['validation_error']['rmse_average']
-
-    return score / 5.
+    return score
 
 
 # Setup the GA search.
-ga = GeneticAlgorithm(pop_size=10,
-                      fit_func=ff,
+ga = GeneticAlgorithm(pop_size=50,
+                      fit_func=ff2,
                       d_param=[1, 1],
                       pop=None)
 ga.search(500)
 
 # Get optimized parameters.
-ga_r = ga.pop[0][0][0]
-ga_w = ga.pop[0][1]
+ga_r = ga.pop[0][1][0]
+ga_w = ga.pop[0][0]
+ga_s = 1.  # ga.pop[0][2]
 
 # Set up the prediction routine.
-kdict = {'k1': {'type': 'gaussian', 'width': w1}}
-gp = GaussianProcess(kernel_dict=kdict, regularization=sdt1**2,
+kdict = {'k1': {'type': 'gaussian', 'width': w1, }}  # 'scaling': 0.9}}
+gp = GaussianProcess(kernel_dict=kdict, regularization=sdt1,
                      train_fp=std['train'], train_target=target[0],
                      optimize_hyperparameters=True)
 
@@ -129,35 +129,35 @@ optimized = gp.predict(test_fp=std['test'], test_target=actual[0],
                        uncertainty=True, get_validation_error=True)
 
 opt_upper = np.array(optimized['prediction']) + \
- (np.array(optimized['uncertainty'] * tstd))
+ (np.array(optimized['uncertainty']))
 opt_lower = np.array(optimized['prediction']) - \
- (np.array(optimized['uncertainty'] * tstd))
+ (np.array(optimized['uncertainty']))
 
-tgp1 = gp.kernel_dict['k1']['width'][0]*stdx
-tgp2 = np.sqrt(gp.regularization)*stdy
+tgp1 = gp.kernel_dict['k1']['width'][0]
+tgp2 = gp.regularization
 opte = optimized['validation_error']['rmse_average']
 
 # Set up the prediction routine.
-kdict = {'k1': {'type': 'gaussian', 'width': ga_w}}
+kdict = {'k1': {'type': 'gaussian', 'width': ga_w, 'scaling': ga_s}}
 gp = GaussianProcess(kernel_dict=kdict, regularization=ga_r,
                      train_fp=std['train'], train_target=target[0],
-                     optimize_hyperparameters=False)
+                     optimize_hyperparameters=False, scale_optimizer=False)
 
 # Do the optimized predictions.
 optga = gp.predict(test_fp=std['test'], test_target=actual[0],
                    uncertainty=True, get_validation_error=True)
 
 ga_upper = np.array(optga['prediction']) + \
- (np.array(optga['uncertainty'] * tstd))
+ (np.array(optga['uncertainty']))
 ga_lower = np.array(optga['prediction']) - \
- (np.array(optga['uncertainty'] * tstd))
+ (np.array(optga['uncertainty']))
 
 gae = optga['validation_error']['rmse_average']
 
 fig = plt.figure(figsize=(15, 8))
 
 ax = fig.add_subplot(131)
-ax.plot(linex[0], liney[0], '-', lw=1, color='black')
+ax.plot(linex[0], actual[0], '-', lw=1, color='black')
 ax.plot(train[0], target[0], 'o', alpha=0.2, color='black')
 ax.plot(test[0], optimized['prediction'], 'g-', lw=1, alpha=0.4)
 ax.fill_between(test[0], opt_upper, opt_lower, interpolate=True, color='green',
@@ -168,25 +168,32 @@ plt.ylabel('response')
 plt.axis('tight')
 
 ax = fig.add_subplot(132)
-ax.plot(linex[0], liney[0], '-', lw=1, color='black')
+ax.plot(linex[0], actual[0], '-', lw=1, color='black')
 ax.plot(train[0], target[0], 'o', alpha=0.2, color='black')
 ax.plot(test[0], optga['prediction'], 'r-', lw=1, alpha=0.4)
 ax.fill_between(test[0], ga_upper, ga_lower, interpolate=True, color='red',
                 alpha=0.2)
 plt.title('w: {0:.3f}, r: {1:.3f}, e: {2:.3f}'.format(
-    ga_w[0]*stdx, np.sqrt(ga_r)*stdy, gae))
+    ga_w[0], ga_r, gae))
 plt.xlabel('feature')
 plt.ylabel('response')
 plt.axis('tight')
 
 ax = fig.add_subplot(133)
-ax.plot(test[0], np.array(optimized['uncertainty'] * tstd), '-', lw=1,
+ax.plot(test[0], np.array(optimized['uncertainty']), '-', lw=1,
         color='green')
-ax.plot(test[0], np.array(optga['uncertainty'] * tstd), '-', lw=1,
+ax.plot(test[0], np.array(optga['uncertainty']), '-', lw=1,
         color='red')
 plt.title('Uncertainty Profile')
 plt.xlabel('feature')
 plt.ylabel('uncertainty')
 plt.axis('tight')
+
+plt.figure(figsize=(10, 10))
+r = np.asarray(big_res)
+z, x, y, = r[:, :1], r[:, 1:2], r[:, 2:]
+plt.scatter(x, y, c=z)
+plt.colorbar()
+plt.show()
 
 plt.show()
