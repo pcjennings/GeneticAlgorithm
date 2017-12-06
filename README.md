@@ -52,10 +52,12 @@ lines of code:
 
 ```python
   # Setup the GA search.
-  ga = GeneticAlgorithm(pop_size=50,
-                        fit_func=fitness_func,
-                        d_param=[5, 3],
-                        pop=None)
+  ga = GeneticAlgorithm(
+      pop_size=50,
+      fit_func=fitness_func,
+      d_param=[5, 3],
+      pop=None
+      )
   # Run GA search.
   ga.search(500)
 ```

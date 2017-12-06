@@ -3,6 +3,7 @@ import numpy as np
 from random import shuffle
 
 from .initialize import initialize_population
+from .mating import cut_and_splice
 
 
 class GeneticAlgorithm(object):
@@ -29,24 +30,6 @@ class GeneticAlgorithm(object):
         self.pop = pop
         if self.pop is None:
             self.pop = initialize_population(pop_size, d_param)
-
-    def cut_and_splice(self, parent_one, parent_two, size='random'):
-        """Perform cut_and_splice between two parents.
-
-        Parameters
-        ----------
-        parent_one : list
-            List of params for first parent.
-        parent_two : list
-            List of params for second parent.
-        size : str
-            Define how to choose size of each cut.
-        """
-        if size is 'random':
-            cut_point = np.random.randint(1, len(parent_one), 1)[0]
-        offspring = parent_one[:cut_point] + parent_two[cut_point:]
-
-        return offspring
 
     def block_mutation(self, parent_one, mut_op):
         """Perform a random permutation on a parameter block.
@@ -159,7 +142,7 @@ class GeneticAlgorithm(object):
             Maximum number of steps to be taken.
         """
         self.fitness = self.get_fitness(self.pop)
-        operator = [self.cut_and_splice, self.block_mutation]
+        operator = [cut_and_splice, self.block_mutation]
         # base_mut_op = ['=', '+', '-', '/', '**', '** -1. *', '** 0.5 *',
         #               '/10.*', '/100.*', '/1000.*', '*2.*', '*5.*', '*10.*']
         base_mut_op = ['=', '+', '-', '/', '*']
