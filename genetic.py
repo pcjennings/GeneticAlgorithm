@@ -1,4 +1,5 @@
 import numpy as np
+from random import shuffle
 
 
 class GeneticAlgorithm(object):
@@ -66,7 +67,7 @@ class GeneticAlgorithm(object):
         p1 = parent_one.copy()
         mut_point = np.random.randint(0, len(p1), 1)[0]
         old_params = np.array(p1[mut_point])
-        new_params = np.random.rand(len(p1[mut_point]))
+        new_params = np.random.rand(len(p1[mut_point])) * 2. * (old_params)
         if mut_op != '=':
             rparams = eval('old_params ' + mut_op + ' new_params')
         else:
@@ -104,7 +105,6 @@ class GeneticAlgorithm(object):
         fit_list : list
             list of fitnesses associated with parameter list.
         """
-        # fit_list = np.asarray(fit_list)
         index = list(range(len(fit_list)))
         fit = list(zip(*sorted(zip(fit_list, index), reverse=True)))
 
@@ -115,6 +115,16 @@ class GeneticAlgorithm(object):
             scale.append(s)
 
         fit_list = list(zip(*sorted(zip(fit[1], scale), reverse=False)))[1]
+
+        param_list_shuf = []
+        fit_list_shuf = []
+        index_shuf = list(range(len(param_list)))
+        shuffle(index_shuf)
+        for i in index_shuf:
+            param_list_shuf.append(param_list[i])
+            fit_list_shuf.append(fit_list[i])
+
+        param_list, fit_list = param_list_shuf, fit_list_shuf
 
         # Get random probability.
         for i, j in zip(param_list, fit_list):
@@ -134,12 +144,13 @@ class GeneticAlgorithm(object):
         global_details = [[i, j] for i, j in zip(pop, fit)]
         global_details.sort(key=lambda x: float(x[1]), reverse=True)
 
-        self.pop, self.fitness = [], []
+        self.pop, self.fitness, unique_list = [], [], []
         for i in global_details:
             if len(self.pop) < self.pop_size:
-                if i[1] not in self.fitness:
+                if round(i[1], 2) not in unique_list:
                     self.pop.append(i[0])
                     self.fitness.append(i[1])
+                    unique_list.append(round(i[1], 2))
             else:
                 break
 
@@ -155,8 +166,9 @@ class GeneticAlgorithm(object):
         """
         self.fitness = self.get_fitness(self.pop)
         operator = [self.cut_and_splice, self.block_mutation]
-        base_mut_op = ['=', '+', '-', '/', '**', '** -1. *', '** 0.5 *',
-                       '/10.*', '/100.*', '/1000.*']
+        # base_mut_op = ['=', '+', '-', '/', '**', '** -1. *', '** 0.5 *',
+        #               '/10.*', '/100.*', '/1000.*', '*2.*', '*5.*', '*10.*']
+        base_mut_op = ['=', '+', '-', '/', '*']
 
         for _ in range(steps):
             p = self.pop[0][0][0]
@@ -180,13 +192,14 @@ class GeneticAlgorithm(object):
                     assert self.pop[0][0][0] == p
                     op = operator[op]
                     offspring_list.append(
-                        np.abs(op(p1,
-                                  mut_op=base_mut_op[mut_choice])).tolist())
+                        op(p1, mut_op=base_mut_op[mut_choice])
+                        )
                     assert self.pop[0][0][0] == p
             new_fit = self.get_fitness(offspring_list)
 
             if new_fit is None:
                 break
+
             extend_fit = self.fitness + new_fit
             extend_pop = self.pop + offspring_list
             self.population_reduction(extend_pop, extend_fit)

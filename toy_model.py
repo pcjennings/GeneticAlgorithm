@@ -18,24 +18,6 @@ def afunc(x):
     return 1. / 20. * p + 500.
 
 
-def k_split(train, target, nsplit):
-    """Define some k-fold split."""
-    train = np.asarray(train)
-    target = np.asarray(np.reshape(target, (len(target), 1)))
-    data = np.concatenate((train, target), axis=1)
-    np.random.shuffle(data)
-    data = np.array_split(data, nsplit)
-
-    split_train = []
-    split_target = []
-    for d in data:
-        s = np.hsplit(d, 2)
-        split_train.append(s[0])
-        split_target.append(s[1])
-
-    return split_train, split_target
-
-
 train_points = 50
 test_points = 5000
 
@@ -189,11 +171,15 @@ plt.xlabel('feature')
 plt.ylabel('uncertainty')
 plt.axis('tight')
 
-plt.figure(figsize=(10, 10))
 r = np.asarray(big_res)
 z, x, y, = r[:, :1], r[:, 1:2], r[:, 2:]
-plt.scatter(x, y, c=z)
+
+# Change color scale to better show minimum.
+z_new = np.array(z).copy()
+z_new[z_new < -50.] = -50.
+
+plt.figure(figsize=(10, 10))
+plt.scatter(x, y, c=z_new)
 plt.colorbar()
-plt.show()
 
 plt.show()
