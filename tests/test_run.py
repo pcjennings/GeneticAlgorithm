@@ -1,7 +1,7 @@
 import unittest
 import random
 
-from genetic import GeneticAlgorithm
+from geneticML.algorithm import GeneticAlgorithm
 
 
 class TestGeneticAlgorithm(unittest.TestCase):

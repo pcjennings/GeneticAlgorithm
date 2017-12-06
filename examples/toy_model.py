@@ -7,7 +7,7 @@ from atoml.preprocess.scale_target import target_standardize
 from atoml.regression import GaussianProcess
 from atoml.regression.gpfunctions.log_marginal_likelihood import log_marginal_likelihood
 
-from genetic import GeneticAlgorithm
+from geneticML.algorithm import GeneticAlgorithm
 
 
 def afunc(x):
