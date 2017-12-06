@@ -53,25 +53,6 @@ class GeneticAlgorithm(object):
 
         return p1
 
-    def get_fitness(self, param_list):
-        """Function wrapper to calculate the fitness.
-
-        Parameters
-        ----------
-        param_list : list
-            List of new parameter sets to get fitness for.
-        """
-        fit = []
-        for p in param_list:
-            try:
-                calc_fit = self.fit_func(p)
-            except ValueError:
-                calc_fit = float('-inf')
-
-            fit.append(calc_fit)
-
-        return fit
-
     def selection(self, param_list, fit_list):
         """Perform natural selection.
 
@@ -133,7 +114,7 @@ class GeneticAlgorithm(object):
 
         assert len(self.pop) == len(self.fitness)
 
-    def search(self, steps):
+    def search(self, steps, base_mut_op=None):
         """Do the actual search.
 
         Parameters
@@ -141,11 +122,11 @@ class GeneticAlgorithm(object):
         steps : int
             Maximum number of steps to be taken.
         """
-        self.fitness = self.get_fitness(self.pop)
+        self.fitness = self._get_fitness(self.pop)
         operator = [cut_and_splice, self.block_mutation]
-        # base_mut_op = ['=', '+', '-', '/', '**', '** -1. *', '** 0.5 *',
-        #               '/10.*', '/100.*', '/1000.*', '*2.*', '*5.*', '*10.*']
-        base_mut_op = ['=', '+', '-', '/', '*']
+
+        if base_mut_op is None:
+            base_mut_op = ['=', '+', '-', '/', '*']
 
         for _ in range(steps):
             p = self.pop[0][0][0]
@@ -172,7 +153,7 @@ class GeneticAlgorithm(object):
                         op(p1, mut_op=base_mut_op[mut_choice])
                         )
                     assert self.pop[0][0][0] == p
-            new_fit = self.get_fitness(offspring_list)
+            new_fit = self._get_fitness(offspring_list)
 
             if new_fit is None:
                 break
@@ -180,3 +161,22 @@ class GeneticAlgorithm(object):
             extend_fit = self.fitness + new_fit
             extend_pop = self.pop + offspring_list
             self.population_reduction(extend_pop, extend_fit)
+
+    def _get_fitness(self, param_list):
+        """Function wrapper to calculate the fitness.
+
+        Parameters
+        ----------
+        param_list : list
+            List of new parameter sets to get fitness for.
+        """
+        fit = []
+        for p in param_list:
+            try:
+                calc_fit = self.fit_func(p)
+            except ValueError:
+                calc_fit = float('-inf')
+
+            fit.append(calc_fit)
+
+        return fit

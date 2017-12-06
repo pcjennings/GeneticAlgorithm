@@ -50,9 +50,6 @@ for i in test:
 # Scale the input.
 std = standardize(train_matrix=np.reshape(train, (np.shape(train)[1], 1)),
                   test_matrix=np.reshape(test, (np.shape(test)[1], 1)))
-# std = {}
-# std['train'] = np.reshape(train, (np.shape(train)[1], 1))
-# std['test'] = np.reshape(test, (np.shape(test)[1], 1))
 
 td = target_standardize(target[0])
 target = np.asarray([td['target']])
@@ -176,7 +173,7 @@ z, x, y, = r[:, :1], r[:, 1:2], r[:, 2:]
 
 # Change color scale to better show minimum.
 z_new = np.array(z).copy()
-z_new[z_new < -50.] = -50.
+z_new[z_new < -35.] = -35.
 
 plt.figure(figsize=(10, 10))
 plt.scatter(x, y, c=z_new)
