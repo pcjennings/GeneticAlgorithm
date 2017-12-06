@@ -22,14 +22,14 @@ should become open source soon.
 The easiest way to install the code is with:
 
   ```shell
-    pip install git+https://gitlab.com/atoML/AtoML.git
+    pip install git+https://github.com/pcjennings/GeneticAlgorithm.git
   ```
 
 This will automatically install the code as well as the dependencies.
 Alternatively, you can clone the repository to a local directory with:
 
   ```shell
-    git clone https://gitlab.com/atoML/AtoML.git
+    git clone https://github.com/pcjennings/GeneticAlgorithm.git
   ```
 
 And then put the `<install_dir>/` into your `$PYTHONPATH` environment variable.
