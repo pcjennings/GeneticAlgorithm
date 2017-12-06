@@ -1,5 +1,8 @@
+"""The GeneticAlgorithm class methods."""
 import numpy as np
 from random import shuffle
+
+from .initialize import initialize_population
 
 
 class GeneticAlgorithm(object):
@@ -25,16 +28,7 @@ class GeneticAlgorithm(object):
 
         self.pop = pop
         if self.pop is None:
-            self.initialize_population()
-
-    def initialize_population(self):
-        """Generate a random starting population."""
-        self.pop = []
-        for i in range(self.pop_size):
-            new_param = []
-            for j in range(len(self.d_param)):
-                new_param.append(list(np.random.rand(self.d_param[j])))
-            self.pop.append(new_param)
+            self.pop = initialize_population(pop_size, d_param)
 
     def cut_and_splice(self, parent_one, parent_two, size='random'):
         """Perform cut_and_splice between two parents.
