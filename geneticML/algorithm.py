@@ -1,6 +1,7 @@
 """The GeneticAlgorithm class methods."""
 import numpy as np
 from random import shuffle
+import copy
 
 from .initialize import initialize_population
 from .mating import cut_and_splice
@@ -41,15 +42,21 @@ class GeneticAlgorithm(object):
         mut_op : string
             String of operator for mutation.
         """
-        p1 = parent_one.copy()
-        mut_point = np.random.randint(0, len(p1), 1)[0]
-        old_params = np.array(p1[mut_point])
-        new_params = np.random.rand(len(p1[mut_point])) * 2. * (old_params)
+        p1 = copy.deepcopy(parent_one)
+        p1_index = []
+        for i in range(len(p1)):
+            p1_index.append([i] * len(p1[i]))
+
+        mut_block = np.random.randint(0, len(p1_index), 1)[0]
+        mut_point = np.random.randint(0, len(p1[mut_block]), 1)[0]
+
+        old_params = p1[mut_block][mut_point]
+        new_params = np.random.rand(1)[0] * 2. * (old_params)
         if mut_op != '=':
             rparams = eval('old_params ' + mut_op + ' new_params')
         else:
             rparams = new_params
-        p1[mut_point] = list(np.abs(rparams))
+        p1[mut_block][mut_point] = np.abs(rparams)
 
         return p1
 
