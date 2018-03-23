@@ -85,7 +85,7 @@ class GeneticAlgorithm(object):
         self.pop, self.fitness, unique_list = [], [], []
         for i in global_details:
             if len(self.pop) < self.pop_size:
-                if round(i[1], 2) not in unique_list:
+                if round(i[1], 10) not in unique_list:
                     self.pop.append(i[0])
                     self.fitness.append(i[1])
                     unique_list.append(round(i[1], 2))
@@ -129,6 +129,8 @@ class GeneticAlgorithm(object):
             extend_fit = self.fitness + new_fit
             extend_pop = np.concatenate((self.pop, offspring_list))
             self.population_reduction(extend_pop, extend_fit)
+
+            print(self.fitness)
 
     def _get_fitness(self, param_list):
         """Function wrapper to calculate the fitness.

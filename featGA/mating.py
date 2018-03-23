@@ -14,7 +14,6 @@ def cut_and_splice(parent_one, parent_two, size='random'):
     size : str
         Define how to choose size of each cut.
     """
-    print(np.shape(parent_one), np.shape(parent_two))
     if size is 'random':
         cut_point = np.random.randint(1, len(parent_one), 1)[0]
     offspring = np.concatenate((parent_one[:cut_point],
