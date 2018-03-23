@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 
+
 def block_mutation(parent_one, mut_op):
     """Perform a random permutation on a parameter block.
 

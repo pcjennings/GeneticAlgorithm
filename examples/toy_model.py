@@ -2,8 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from atoml.preprocess.feature_preprocess import standardize
-from atoml.preprocess.scale_target import target_standardize
+from atoml.preprocess.scaling import standardize, target_standardize
 from atoml.regression import GaussianProcess
 from atoml.regression.gpfunctions.log_marginal_likelihood import log_marginal_likelihood
 
@@ -75,7 +74,7 @@ def ff2(x):
     try:
         score = -log_marginal_likelihood(
             theta=theta, train_matrix=std['train'], targets=target[0],
-            kernel_dict=kdict, scale_optimizer=False)
+            kernel_dict=kdict, scale_optimizer=False, eval_gradients=False)
     except ValueError:
         return -1.e100
 
