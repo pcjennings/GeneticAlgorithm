@@ -1,6 +1,6 @@
 """The GeneticAlgorithm class methods."""
 import numpy as np
-from random import shuffle
+import random
 
 from .initialize import initialize_population
 from .mating import cut_and_splice
@@ -56,7 +56,7 @@ class GeneticAlgorithm(object):
         param_list_shuf = []
         fit_list_shuf = []
         index_shuf = list(range(len(param_list)))
-        shuffle(index_shuf)
+        random.shuffle(index_shuf)
         for i in index_shuf:
             param_list_shuf.append(param_list[i])
             fit_list_shuf.append(fit_list[i])
@@ -64,9 +64,10 @@ class GeneticAlgorithm(object):
         param_list, fit_list = param_list_shuf, fit_list_shuf
 
         # Get random probability.
-        for i, j in zip(param_list, fit_list):
-            if j > np.random.rand(1)[0]:
-                return i
+        for parameter, fitness in zip(param_list, fit_list):
+            if fitness > np.random.rand(1)[0]:
+                return parameter
+
         return None
 
     def population_reduction(self, pop, fit):
@@ -85,10 +86,10 @@ class GeneticAlgorithm(object):
         self.pop, self.fitness, unique_list = [], [], []
         for i in global_details:
             if len(self.pop) < self.pop_size:
-                if round(i[1], 10) not in unique_list:
+                if round(i[1], 5) not in unique_list:
                     self.pop.append(i[0])
                     self.fitness.append(i[1])
-                    unique_list.append(round(i[1], 2))
+                    unique_list.append(round(i[1], 5))
             else:
                 break
 
@@ -108,29 +109,36 @@ class GeneticAlgorithm(object):
         for _ in range(steps):
             offspring_list = []
             for c in range(self.pop_size):
-                op = np.random.randint(0, len(operator), 1)[0]
+                # Select an initial candidate.
                 p1 = None
                 while p1 is None:
                     p1 = self.selection(self.pop, self.fitness)
-                if op == 0:
-                    op = operator[op]
+
+                # Select a random operator.
+                op = random.choice(operator)
+
+                # First check for mating.
+                if op is cut_and_splice:
                     p2 = p1
                     while p2 is p1 or p2 is None:
                         p2 = self.selection(self.pop, self.fitness)
                     offspring_list.append(op(p1, p2))
-                else:
-                    op = operator[op]
-                    offspring_list.append(op(p1))
-            new_fit = self._get_fitness(offspring_list)
 
+                # Otherwise perfrom mutation.
+                else:
+                    offspring_list.append(op(p1))
+
+            # Keep track of fitness for new candidates.
+            new_fit = self._get_fitness(offspring_list)
             if new_fit is None:
                 break
 
+            # Combine data sets.
             extend_fit = self.fitness + new_fit
             extend_pop = np.concatenate((self.pop, offspring_list))
-            self.population_reduction(extend_pop, extend_fit)
 
-            print(self.fitness)
+            # Perform natural selection.
+            self.population_reduction(extend_pop, extend_fit)
 
     def _get_fitness(self, param_list):
         """Function wrapper to calculate the fitness.
@@ -140,13 +148,13 @@ class GeneticAlgorithm(object):
         param_list : list
             List of new parameter sets to get fitness for.
         """
-        fit = []
-        for p in param_list:
+        fit = np.zeros(len(param_list))
+        for index, parameter in enumerate(param_list):
             try:
-                calc_fit = self.fit_func(p)
+                calc_fit = self.fit_func(parameter)
             except ValueError:
                 calc_fit = float('-inf')
 
-            fit.append(calc_fit)
+            fit[index] = calc_fit
 
         return fit
