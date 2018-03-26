@@ -32,7 +32,52 @@ class GeneticAlgorithm(object):
         if self.pop is None:
             self.pop = initialize_population(pop_size, dimension)
 
-    def selection(self, param_list, fit_list):
+    def search(self, steps):
+        """Do the actual search.
+
+        Parameters
+        ----------
+        steps : int
+            Maximum number of steps to be taken.
+        """
+        self.fitness = self._get_fitness(self.pop)
+        operator = [cut_and_splice, random_permutation]
+
+        for _ in range(steps):
+            offspring_list = []
+            for c in range(self.pop_size):
+                # Select an initial candidate.
+                p1 = None
+                while p1 is None:
+                    p1 = self._selection(self.pop, self.fitness)
+
+                # Select a random operator.
+                op = random.choice(operator)
+
+                # First check for mating.
+                if op is cut_and_splice:
+                    p2 = p1
+                    while p2 is p1 or p2 is None:
+                        p2 = self._selection(self.pop, self.fitness)
+                    offspring_list.append(op(p1, p2))
+
+                # Otherwise perfrom mutation.
+                else:
+                    offspring_list.append(op(p1))
+
+            # Keep track of fitness for new candidates.
+            new_fit = self._get_fitness(offspring_list)
+            if new_fit is None:
+                break
+
+            # Combine data sets.
+            extend_fit = self.fitness + new_fit
+            extend_pop = np.concatenate((self.pop, offspring_list))
+
+            # Perform natural selection.
+            self._population_reduction(extend_pop, extend_fit)
+
+    def _selection(self, param_list, fit_list):
         """Perform natural selection.
 
         Parameters
@@ -70,7 +115,7 @@ class GeneticAlgorithm(object):
 
         return None
 
-    def population_reduction(self, pop, fit):
+    def _population_reduction(self, pop, fit):
         """Method to reduce population size to constant.
 
         Parameters
@@ -94,51 +139,6 @@ class GeneticAlgorithm(object):
                 break
 
         assert len(self.pop) == len(self.fitness)
-
-    def search(self, steps):
-        """Do the actual search.
-
-        Parameters
-        ----------
-        steps : int
-            Maximum number of steps to be taken.
-        """
-        self.fitness = self._get_fitness(self.pop)
-        operator = [cut_and_splice, random_permutation]
-
-        for _ in range(steps):
-            offspring_list = []
-            for c in range(self.pop_size):
-                # Select an initial candidate.
-                p1 = None
-                while p1 is None:
-                    p1 = self.selection(self.pop, self.fitness)
-
-                # Select a random operator.
-                op = random.choice(operator)
-
-                # First check for mating.
-                if op is cut_and_splice:
-                    p2 = p1
-                    while p2 is p1 or p2 is None:
-                        p2 = self.selection(self.pop, self.fitness)
-                    offspring_list.append(op(p1, p2))
-
-                # Otherwise perfrom mutation.
-                else:
-                    offspring_list.append(op(p1))
-
-            # Keep track of fitness for new candidates.
-            new_fit = self._get_fitness(offspring_list)
-            if new_fit is None:
-                break
-
-            # Combine data sets.
-            extend_fit = self.fitness + new_fit
-            extend_pop = np.concatenate((self.pop, offspring_list))
-
-            # Perform natural selection.
-            self.population_reduction(extend_pop, extend_fit)
 
     def _get_fitness(self, param_list):
         """Function wrapper to calculate the fitness.
